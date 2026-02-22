@@ -5,10 +5,14 @@ import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
 import 'layout/responsive_layout.dart';
 import 'widgets/sidebar.dart';
+import 'l10n/translations.dart';
+
+// SCREEN IMPORTS
 import 'screens/dashboard_screen.dart';
 import 'screens/billing_screen.dart';
 import 'screens/api_screen.dart';
-import 'l10n/translations.dart';
+import 'screens/auth/role_selection_screen.dart'; 
+import 'screens/scam_detection_screen.dart'; // <--- THIS WAS MISSING
 
 void main() {
   runApp(
@@ -30,6 +34,8 @@ class QDFXApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'QDFX',
       theme: appState.currentTheme,
+      
+      // Localization
       locale: appState.currentLocale,
       supportedLocales: const [
         Locale('en', ''),
@@ -41,7 +47,14 @@ class QDFXApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const MainScaffold(),
+
+      // Navigation Routes
+      initialRoute: '/auth', 
+
+      routes: {
+        '/auth': (context) => const RoleSelectionScreen(),
+        '/': (context) => const MainScaffold(), 
+      },
     );
   }
 }
@@ -55,10 +68,21 @@ class MainScaffold extends StatelessWidget {
 
     Widget currentScreen;
     switch (selectedIndex) {
-      case 0: currentScreen = const DashboardContent(); break;
-      case 1: currentScreen = const BillingScreen(); break;
-      case 2: currentScreen = const ApiScreen(); break;
-      default: currentScreen = const DashboardContent();
+      case 0: 
+        currentScreen = const DashboardContent(); 
+        break;
+      case 1: 
+        currentScreen = const BillingScreen(); 
+        break;
+      case 2: 
+        currentScreen = const ApiScreen(); 
+        break;
+      case 3: 
+        // No 'const' here because it is stateful
+        currentScreen = const ScamDetectionScreen(); 
+        break;
+      default: 
+        currentScreen = const DashboardContent();
     }
 
     return Scaffold(
@@ -89,10 +113,10 @@ class MobileLayout extends StatelessWidget {
       appBar: AppBar(
          title: Image.asset(
           'assets/logo.png', 
-          height: 80, // Smaller height for the AppBar
+          height: 40, 
+          errorBuilder: (c,e,s) => const Text("QDFX"),
         ),
-                centerTitle: true, // Optional: centers the logo
-
+        centerTitle: true, 
         backgroundColor: Theme.of(context).cardTheme.color,
         actions: [
           PopupMenuButton<String>(
@@ -111,10 +135,11 @@ class MobileLayout extends StatelessWidget {
         backgroundColor: Theme.of(context).cardTheme.color,
         selectedItemColor: Theme.of(context).primaryColor,
         unselectedItemColor: Colors.grey,
+        // Ensure index doesn't crash mobile nav if > 2
         currentIndex: appState.selectedIndex > 2 ? 0 : appState.selectedIndex,
         onTap: (index) => appState.setIndex(index),
         items: [
-          BottomNavigationBarItem(icon: const Icon(Icons.dashboard), label: t('home')),
+          BottomNavigationBarItem(icon: const Icon(Icons.dashboard), label: t('dashboard')),
           BottomNavigationBarItem(icon: const Icon(Icons.credit_card), label: t('billing')),
           BottomNavigationBarItem(icon: const Icon(Icons.code), label: t('api')),
         ],
